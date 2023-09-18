@@ -13,25 +13,27 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     final int tileSize;
     final int gridWidth;
     final int gridHeight;
-    final int timerDelay;
+    int timerDelay;
+    double snakeWidth;
 
     ArrayList<Tile> snakeTiles;
     ArrayList<Tile> snakeDirs;
     Tile direction;
     Tile newDir;
-    int snakeSize = 4;
+    int snakeLength = 4;
     Tile apple;
     Random random;
     Timer gameTimer;
     boolean gameOver = false;
 
-    SnakeGame(int boardWidth, int boardHeight, int tileSize, int timerDelay) {
+    SnakeGame(int boardWidth, int boardHeight, int tileSize) {
         this.boardWidth = boardWidth;
         this.boardHeight = boardHeight;
         this.tileSize = tileSize;
         this.gridWidth = boardWidth / tileSize;
         this.gridHeight = boardHeight / tileSize;
-        this.timerDelay = timerDelay;
+        this.timerDelay = 100;
+        this.snakeWidth = 1./4;
 
         setPreferredSize(new Dimension(this.boardWidth, this.boardHeight));
         setBackground(Color.BLACK);
@@ -48,7 +50,6 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         random = new Random();
         placeFood();
         gameTimer = new Timer(timerDelay, this);
-        gameTimer.start();
     }
 
     public void paintComponent(Graphics g) {
@@ -57,7 +58,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     }
 
     public void draw(Graphics g) {
-        int offset = tileSize / 4;
+        int offset = (int) (tileSize * snakeWidth);
 
         // Grid
         g.setColor(Color.GRAY);
@@ -95,8 +96,8 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             g.setColor(Color.RED);
         else
             g.setColor(Color.GREEN);
-        g.setFont(new Font("Lucida Grande", 0, tileSize/2));
-        g.drawString(String.format("Score: %d", snakeSize - 4), offset, g.getFontMetrics().getHeight() + offset);
+        g.setFont(new Font("Lucida Grande", 0, tileSize / 2));
+        g.drawString(String.format("Score: %d", snakeLength - 4), offset, g.getFontMetrics().getHeight() + offset);
     }
 
     @Override
@@ -116,14 +117,14 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
 
         snakeTiles.add(0, new Tile(newX, newY));
         snakeDirs.add(0, new Tile(direction.getX(), direction.getY()));
-        if (snakeTiles.size() > snakeSize) {
-            snakeTiles.remove(snakeSize);
-            snakeDirs.remove(snakeSize);
+        if (snakeTiles.size() > snakeLength) {
+            snakeTiles.remove(snakeLength);
+            snakeDirs.remove(snakeLength);
         }
 
         // APPLE COLLISION
         if (snakeTiles.get(0).collide(apple)) {
-            snakeSize++;
+            snakeLength++;
             placeFood();
         }
 
@@ -189,6 +190,24 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             default:
                 break;
         }
+    }
+
+    // USER METODS
+    public void start() {
+        gameTimer.start();
+    }
+
+    public void Pause() {
+        gameTimer.stop();
+    }
+
+    public void setTimerDelay(int timerDelay) {
+        this.timerDelay = timerDelay;
+        gameTimer = new Timer(timerDelay, this);
+    }
+
+    public void setSnakeWidth(double percent) {
+        this.snakeWidth = percent;
     }
 
     // PAS BESOIN
