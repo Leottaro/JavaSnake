@@ -55,7 +55,10 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
 
     public void draw(Graphics g) {
         // Score
-        g.setColor(Color.GREEN);
+        if (gameOver)
+            g.setColor(Color.RED);
+        else
+            g.setColor(Color.GREEN);
         g.drawString(String.format("Score: %d", snakeSize - 4), tileSize / 2, g.getFontMetrics().getHeight());
 
         // Grid
@@ -73,6 +76,9 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
 
         // Snake
         g.setColor(Color.GREEN);
+        for (int i = 0; i < snakeSize; i++) {
+            
+        }
         snakeTiles.forEach(tile -> g.fillRect(tile.getX() * tileSize, tile.getY() * tileSize, tileSize, tileSize));
     }
 
