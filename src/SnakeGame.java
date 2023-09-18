@@ -10,25 +10,28 @@ import javax.swing.*;
 public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     final int boardWidth;
     final int boardHeight;
+    final int tileSize;
     final int gridWidth;
     final int gridHeight;
-    final int tileSize = 24;
+    final int timerDelay;
 
-    Tile apple;
-    Random random;
-
+    ArrayList<Tile> snakeTiles;
+    ArrayList<Tile> snakeDirs;
     Tile direction;
     Tile newDir;
-    boolean gameOver = false;
-    Timer gameTimer;
-    ArrayList<Tile> snakeTiles;
     int snakeSize = 4;
+    Tile apple;
+    Random random;
+    Timer gameTimer;
+    boolean gameOver = false;
 
-    SnakeGame(int boardWidth, int boardHeight) {
+    SnakeGame(int boardWidth, int boardHeight, int tileSize, int timerDelay) {
         this.boardWidth = boardWidth;
         this.boardHeight = boardHeight;
+        this.tileSize = tileSize;
         this.gridWidth = boardWidth / tileSize;
         this.gridHeight = boardHeight / tileSize;
+        this.timerDelay = timerDelay;
 
         setPreferredSize(new Dimension(this.boardWidth, this.boardHeight));
         setBackground(Color.BLACK);
@@ -36,15 +39,15 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         setFocusable(true);
 
         snakeTiles = new ArrayList<Tile>();
+        snakeDirs = new ArrayList<Tile>();
         snakeTiles.add(new Tile(gridWidth / 2, gridHeight / 2));
-
+        snakeDirs.add(new Tile(0, 0));
         direction = new Tile(0, 0);
         newDir = new Tile(0, 0);
         apple = new Tile(-1, -1);
         random = new Random();
         placeFood();
-
-        gameTimer = new Timer(100, this);
+        gameTimer = new Timer(timerDelay, this);
         gameTimer.start();
     }
 
@@ -54,12 +57,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     }
 
     public void draw(Graphics g) {
-        // Score
-        if (gameOver)
-            g.setColor(Color.RED);
-        else
-            g.setColor(Color.GREEN);
-        g.drawString(String.format("Score: %d", snakeSize - 4), tileSize / 2, g.getFontMetrics().getHeight());
+        int offset = tileSize / 4;
 
         // Grid
         g.setColor(Color.GRAY);
@@ -72,14 +70,33 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
 
         // Apple
         g.setColor(Color.RED);
-        g.fillRect(apple.getX() * tileSize, apple.getY() * tileSize, tileSize, tileSize);
+        g.fillRect(apple.getX() * tileSize + offset, apple.getY() * tileSize + offset, tileSize - offset * 2,
+                tileSize - offset * 2);
 
         // Snake
         g.setColor(Color.GREEN);
-        for (int i = 0; i < snakeSize; i++) {
-            
+        for (int i = 0; i < snakeTiles.size(); i++) {
+            int x = snakeTiles.get(i).getX() * tileSize + offset;
+            int y = snakeTiles.get(i).getY() * tileSize + offset;
+            int width = tileSize - offset * 2;
+            int height = tileSize - offset * 2;
+            g.fillRect(x, y, width, height);
+            if (i != 0) {
+                g.fillRect(x + offset * snakeDirs.get(i - 1).getX(), y + offset * snakeDirs.get(i - 1).getY(),
+                        width, height);
+            }
+            if (i != snakeTiles.size() - 1) {
+                g.fillRect(x - offset * snakeDirs.get(i).getX(), y - offset * snakeDirs.get(i).getY(), width, height);
+            }
         }
-        snakeTiles.forEach(tile -> g.fillRect(tile.getX() * tileSize, tile.getY() * tileSize, tileSize, tileSize));
+
+        // Score
+        if (gameOver)
+            g.setColor(Color.RED);
+        else
+            g.setColor(Color.GREEN);
+        g.setFont(new Font("Lucida Grande", 0, tileSize/2));
+        g.drawString(String.format("Score: %d", snakeSize - 4), offset, g.getFontMetrics().getHeight() + offset);
     }
 
     @Override
@@ -96,12 +113,13 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         // MOVE
         int newX = snakeTiles.get(0).getX() + direction.getX();
         int newY = snakeTiles.get(0).getY() + direction.getY();
-        if (newX < 0 || newX >= gridWidth || newY < 0 || newY >= gridHeight)
-            gameOver = true;
 
         snakeTiles.add(0, new Tile(newX, newY));
-        if (snakeTiles.size() > snakeSize)
+        snakeDirs.add(0, new Tile(direction.getX(), direction.getY()));
+        if (snakeTiles.size() > snakeSize) {
             snakeTiles.remove(snakeSize);
+            snakeDirs.remove(snakeSize);
+        }
 
         // APPLE COLLISION
         if (snakeTiles.get(0).collide(apple)) {
@@ -110,9 +128,13 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         }
 
         // DEATH
-        for (int i = 1; i < snakeTiles.size(); i++)
-            if (snakeTiles.get(i).getX() == newX && snakeTiles.get(i).getY() == newY)
-                gameOver = true;
+        if (newX < 0 || newX >= gridWidth || newY < 0 || newY >= gridHeight) {
+            gameOver = true;
+        } else {
+            for (int i = 1; i < snakeTiles.size(); i++)
+                if (snakeTiles.get(0).collide(snakeTiles.get(i)))
+                    gameOver = true;
+        }
 
         if (gameOver) {
             gameTimer.setRepeats(false);
@@ -122,19 +144,20 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     }
 
     public void placeFood() {
-        boolean isValid = false;
-        int newX = -1, newY = -1;
-        while (!isValid) {
+        int newX, newY;
+        boolean isValid;
+        do {
+            isValid = true;
             newX = random.nextInt(gridWidth);
             newY = random.nextInt(gridHeight);
 
             for (Tile tile : snakeTiles) {
-                if (tile.getX() != newX && tile.getY() != newY) {
-                    isValid = true;
+                if (tile.getX() == newX && tile.getY() == newY) {
+                    isValid = false;
                     break;
                 }
             }
-        }
+        } while (!isValid);
         apple.setCoords(newX, newY);
     }
 
