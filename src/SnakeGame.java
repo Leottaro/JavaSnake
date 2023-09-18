@@ -13,10 +13,10 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     final int gridWidth;
     final int gridHeight;
     final int tileSize = 24;
-    
+
     Tile apple;
     Random random;
-    
+
     Tile direction;
     Tile newDir;
     boolean gameOver = false;
@@ -44,7 +44,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         random = new Random();
         placeFood();
 
-        gameTimer = new Timer(75, this);
+        gameTimer = new Timer(100, this);
         gameTimer.start();
     }
 
@@ -56,7 +56,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     public void draw(Graphics g) {
         // Score
         g.setColor(Color.GREEN);
-        g.drawString(String.format("Score: %d", snakeSize-4), tileSize/2, g.getFontMetrics().getHeight());
+        g.drawString(String.format("Score: %d", snakeSize - 4), tileSize / 2, g.getFontMetrics().getHeight());
 
         // Grid
         g.setColor(Color.GRAY);
@@ -83,9 +83,10 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     }
 
     public void tick() {
-        if (newDir.getX() == 0 && newDir.getY() == 0) return;
-        direction = newDir;
-        
+        if (newDir.getX() == 0 && newDir.getY() == 0)
+            return;
+        direction.setCoords(newDir.getX(), newDir.getY());
+
         // MOVE
         int newX = snakeTiles.get(0).getX() + direction.getX();
         int newY = snakeTiles.get(0).getY() + direction.getY();
@@ -120,7 +121,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         while (!isValid) {
             newX = random.nextInt(gridWidth);
             newY = random.nextInt(gridHeight);
-            
+
             for (Tile tile : snakeTiles) {
                 if (tile.getX() != newX && tile.getY() != newY) {
                     isValid = true;
