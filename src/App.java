@@ -1,10 +1,11 @@
+import java.awt.Toolkit;
 import javax.swing.JFrame;
 
 public class App {
     public static void main(String[] args) throws Exception {
-        int boardWidth = 720;
-        int boardHeight = boardWidth;
-        int tileSize = boardWidth/15;
+        int boardHeight = (int) (Toolkit.getDefaultToolkit().getScreenSize().getHeight() * 0.75);
+        int boardWidth = boardHeight;
+        int tileSize = boardHeight/15;
         int timerDelay = 100;
         double snakeWidth = 1./4;
 
