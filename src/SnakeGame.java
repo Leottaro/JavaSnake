@@ -92,11 +92,11 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         }
 
         // Score
+        g.setFont(new Font("Lucida Grande", 0, tileSize / 2));
         if (gameOver)
             g.setColor(Color.RED);
         else
-            g.setColor(Color.GREEN);
-        g.setFont(new Font("Lucida Grande", 0, tileSize / 2));
+            g.setColor(Color.WHITE);
         g.drawString(String.format("Score: %d", snakeLength - 4), offset, g.getFontMetrics().getHeight() + offset);
     }
 
