@@ -30,13 +30,19 @@ public class Storage {
     }
 
     private static int decrypted(ByteBuffer bytes) {
-        bytes.position(0);
-        String binaryString = "";
-        for (int i = 0; i < 32; i++) {
-            int temp = ((int) bytes.getInt() - (int) key.charAt(i % key.length()));
-            binaryString += (char) temp;
+        try {
+            bytes.position(0);
+            String binaryString = "";
+            for (int i = 0; i < 32; i++) {
+                int temp = ((int) bytes.getInt() - (int) key.charAt(i % key.length()));
+                binaryString += (char) temp;
+            }
+            int n = Integer.parseInt(binaryString, 2);
+            return n;
+        } catch (Exception e) {
+            System.out.format("an error occured in Storage.decrypted() : %s\n", e);
         }
-        return Integer.parseInt(binaryString, 2);
+        return -1;
     }
 
     private static ByteBuffer crypted(int n) {
@@ -82,6 +88,11 @@ public class Storage {
             if (!Files.exists(path.getParent()))
                 Files.createDirectory(path.getParent());
             if (!path.toFile().canRead()) {
+                path.toFile().createNewFile();
+                write(n);
+            }
+            if (read() == -1) {
+                path.toFile().delete();
                 path.toFile().createNewFile();
                 write(n);
             }
