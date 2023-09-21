@@ -1,11 +1,16 @@
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Random;
-import javax.swing.*;
+
+import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     final int boardWidth;
@@ -13,6 +18,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     final int tileSize;
     final int gridWidth;
     final int gridHeight;
+    private boolean store = true;
 
     private ArrayList<Tile> snakeTiles;
     private ArrayList<Tile> snakeDirs;
@@ -55,6 +61,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         placeFood();
         gameTimer = new Timer(timerDelay, this);
         gameOver = false;
+        store = Storage.createFile(score);
     }
 
     public void paintComponent(Graphics g) {
@@ -97,12 +104,16 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         }
 
         // Score
-        g.setFont(new Font("Lucida Grande", 0, tileSize / 2));
+        g.setFont(new Font("Lucida Grande", 0, tileSize / 3));
         if (gameOver)
             g.setColor(Color.RED);
         else
             g.setColor(Color.WHITE);
-        g.drawString(String.format("Score: %d", score), offset, g.getFontMetrics().getHeight() + offset);
+        if (store) {
+            g.drawString(String.format("Best Score: %d", Storage.read()), offset, g.getFontMetrics().getHeight());
+            g.drawString(String.format("Score: %d", score), offset, g.getFontMetrics().getHeight() * 2);
+        } else
+            g.drawString(String.format("Score: %d", score), offset, g.getFontMetrics().getHeight());
     }
 
     @Override
@@ -141,6 +152,9 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
                 if (snakeTiles.get(0).collide(snakeTiles.get(i)))
                     gameOver = true;
         }
+
+        if (store && Storage.read() < score)
+            Storage.write(score);
 
         if (gameOver) {
             Pause();
